@@ -1,72 +1,166 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>あなたのIPアドレス</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #121212;
-      --fg: #e0e0e0;
-      --accent: #ff4c4c;
-    }
-    body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--fg);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      padding: 2rem;
-      min-height: 100vh;
-      text-align: center;
-    }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      color: var(--accent);
-    }
-    #info {
-      font-size: 1rem;
-      line-height: 1.8;
-      background: #1e1e1e;
-      padding: 1.5rem;
-      border-radius: 12px;
-      max-width: 600px;
-      word-break: break-word;
-      text-align: left;
-    }
-    strong {
-      color: var(--accent);
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>招待リンク生成</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
+
+body {
+    font-family: 'DotGothic16', monospace;
+    background-color: #0f0f0f;
+    color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background-color: #1a1a1a;
+    padding: 30px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+}
+
+h2 {
+    margin-bottom: 20px;
+}
+
+input, button {
+    width: 100%;
+    padding: 8px;
+    margin: 6px 0;
+    border-radius: 6px;
+    border: none;
+    font-size: 16px;
+}
+
+button {
+    background-color: #3a3a3a;
+    color: #f0f0f0;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+#output {
+    margin-top: 20px;
+    text-align: left;
+    word-break: break-all;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #111;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+#counter {
+    margin-top: 10px;
+    font-size: 24px;
+    color: #00ff00;
+}
+
+#loading {
+    margin-top: 10px;
+    display: none;
+}
+.copy-btn {
+    cursor: pointer;
+    color: #0af;
+}
+.copy-btn:hover {
+    text-decoration: underline;
+}
+</style>
 </head>
 <body>
-  <h1>Your IP & Location</h1>
-  <div id="info">読み込み中...</div>
+<div class="container">
+<h2>Discord Invite Generator</h2>
 
-  <script>
-    fetch("https://ipapi.co/json/")
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById("info").innerHTML = `
-          <p><strong>IP:</strong> ${data.ip}</p>
-          <p><strong>国:</strong> ${data.country_name} (${data.country})</p>
-          <p><strong>地域:</strong> ${data.region}</p>
-          <p><strong>都市:</strong> ${data.city}</p>
-          <p><strong>郵便番号:</strong> ${data.postal}</p>
-          <p><strong>タイムゾーン:</strong> ${data.timezone}</p>
-          <p><strong>緯度・経度:</strong> ${data.latitude}, ${data.longitude}</p>
-          <p><strong>ASN:</strong> ${data.asn}</p>
-          <p><strong>ISP / 組織:</strong> ${data.org}</p>
-        `;
-      })
-      .catch(() => {
-        document.getElementById("info").textContent = "情報を取得できませんでした...";
-      });
-  </script>
+<input type="text" id="token" placeholder="Your Discord Token">
+<input type="text" id="channelId" placeholder="Channel ID">
+<input type="number" id="count" placeholder="Number of invites">
+
+<button id="startBtn">生成開始！</button>
+
+<div id="counter">現在の生成数: 0</div>
+<img id="loading" src="https://u.cubeupload.com/111/loadinggif3262986532.gif&f=1&nofb=1&ipt=64eb10cdf436d14c018f461bb6ee78e8be1418b3c3b9064d69f987aa14345304" width="30">
+
+<div id="output"></div>
+</div>
+
+<script>
+const output = document.getElementById('output');
+const counterEl = document.getElementById('counter');
+const loading = document.getElementById('loading');
+let createdCount = 0;
+
+document.getElementById('startBtn').addEventListener('click', async () => {
+    const token = document.getElementById('token').value.trim();
+    const channelId = document.getElementById('channelId').value.trim();
+    const count = parseInt(document.getElementById('count').value);
+
+    if (!token || !channelId || !count) {
+        output.textContent = "全ての項目を入力してください";
+        return;
+    }
+
+    output.textContent = "";
+    createdCount = 0;
+    counterEl.textContent = `作成数: ${createdCount}`;
+    loading.style.display = 'inline';
+
+    for (let i = 0; i < count; i++) {
+        try {
+            const res = await fetch(`https://discord.com/api/v10/channels/${channelId}/invites`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': token,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ max_age: 0, max_uses: 0, temporary: false, unique: true })
+            });
+
+            if (res.status === 429) {
+                output.textContent += "\n429が出ました。スクリプトを停止します。";
+                break;
+            }
+
+            const data = await res.json();
+            if (data.code) {
+                const code = data.code;
+                const span = document.createElement('span');
+                span.textContent = code;
+                span.className = 'copy-btn';
+                span.title = 'クリックでコピー';
+                span.addEventListener('click', () => {
+                    navigator.clipboard.writeText(code);
+                    alert(`コピーしました: ${code}`);
+                });
+                output.appendChild(span);
+                output.appendChild(document.createElement('br'));
+
+                createdCount++;
+                counterEl.textContent = `作成数: ${createdCount}`;
+            } else {
+                output.textContent += `エラー: ${JSON.stringify(data)}\n`;
+            }
+        } catch (err) {
+            output.textContent += `例外エラー: ${err}\n`;
+        }
+
+        await new Promise(r => setTimeout(r, 4000));
+    }
+
+    loading.style.display = 'none';
+});
+</script>
 </body>
 </html>

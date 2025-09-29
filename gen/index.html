@@ -25,16 +25,27 @@
         text-align: center;
     }
     h2 { margin-bottom: 20px; }
-    input[type="number"], button {
+
+    input[type="number"], input[type="checkbox"] {
         padding: 10px;
         margin: 10px;
         border-radius: 5px;
         border: none;
-        background-color: #5865F2;
+        background-color: #fff;
+        color: #000;
+        cursor: pointer;
+    }
+
+    button {
+        padding: 10px 16px;
+        margin: 10px;
+        border-radius: 5px;
+        border: none;
+        background-color: #5865F2; 
         color: white;
         cursor: pointer;
     }
-    input[type="checkbox"] { margin: 5px; }
+
     #output {
         margin-top: 20px;
         max-height: 300px;
@@ -108,7 +119,7 @@ generateButton.addEventListener('click', () => {
     }
     combinations = generateCombinations(charset, length);
     const newline = document.getElementById('newline').checked;
-    output.textContent = newline ? combinations.join('\n') : combinations.join(' '); // 半角スペースで区切る
+    output.textContent = newline ? combinations.join('\n') : combinations.join(' '); 
 });
 
 downloadButton.addEventListener('click', () => {
@@ -117,7 +128,7 @@ downloadButton.addEventListener('click', () => {
         return;
     }
     const newline = document.getElementById('newline').checked;
-    const text = newline ? combinations.join('\n') : combinations.join(' '); // 半角スペースで区切る
+    const text = newline ? combinations.join('\n') : combinations.join(' '); 
     const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

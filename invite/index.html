@@ -67,10 +67,6 @@ button:hover {
     color: #00ff00;
 }
 
-#loading {
-    margin-top: 10px;
-    display: none;
-}
 .copy-btn {
     cursor: pointer;
     color: #0af;
@@ -87,27 +83,26 @@ button:hover {
 <input type="text" id="token" placeholder="あなたのtoken (捨てアカウントの利用を推奨)">
 <input type="text" id="channelId" placeholder="チャンネルID">
 <input type="number" id="count" placeholder="生成する招待リンクの数">
+<input type="number" id="interval" placeholder="生成間隔（秒）" value="4" min="1">
 
 <button id="startBtn">生成開始！</button>
 
 <div id="counter">現在の生成数: 0</div>
-<img id="loading" src="https://u.cubeupload.com/111/loadinggif3262986532.gif&f=1&nofb=1&ipt=64eb10cdf436d14c018f461bb6ee78e8be1418b3c3b9064d69f987aa14345304" width="30">
-
 <div id="output"></div>
 </div>
 
 <script>
 const output = document.getElementById('output');
 const counterEl = document.getElementById('counter');
-const loading = document.getElementById('loading');
 let createdCount = 0;
 
 document.getElementById('startBtn').addEventListener('click', async () => {
     const token = document.getElementById('token').value.trim();
     const channelId = document.getElementById('channelId').value.trim();
     const count = parseInt(document.getElementById('count').value);
+    const intervalSec = parseFloat(document.getElementById('interval').value);
 
-    if (!token || !channelId || !count) {
+    if (!token || !channelId || !count || !intervalSec) {
         output.textContent = "全ての項目を入力してください";
         return;
     }
@@ -115,7 +110,6 @@ document.getElementById('startBtn').addEventListener('click', async () => {
     output.textContent = "";
     createdCount = 0;
     counterEl.textContent = `作成数: ${createdCount}`;
-    loading.style.display = 'inline';
 
     for (let i = 0; i < count; i++) {
         try {
@@ -156,10 +150,8 @@ document.getElementById('startBtn').addEventListener('click', async () => {
             output.textContent += `例外なエラー: ${err}\n`;
         }
 
-        await new Promise(r => setTimeout(r, 4000));
+        await new Promise(r => setTimeout(r, intervalSec * 1000));
     }
-
-    loading.style.display = 'none';
 });
 </script>
 </body>

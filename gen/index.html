@@ -26,6 +26,7 @@
     }
     h2 { margin-bottom: 20px; }
 
+    /* 入力欄やチェックボックスのスタイル */
     input[type="number"], input[type="checkbox"] {
         padding: 10px;
         margin: 10px;
@@ -36,12 +37,13 @@
         cursor: pointer;
     }
 
+    /* 生成・ダウンロードボタン */
     button {
         padding: 10px 16px;
         margin: 10px;
         border-radius: 5px;
         border: none;
-        background-color: #5865F2; 
+        background-color: #5865F2; /* 青 */
         color: white;
         cursor: pointer;
     }
@@ -60,7 +62,7 @@
 </head>
 <body>
 <div class="container">
-    <h2>文字列組み合わせジェネレーター</h2>
+    <h2>文字列ジェネレーター</h2>
     <label for="length">文字数: </label>
     <input type="number" id="length" value="2" min="1">
     <br>
@@ -71,10 +73,10 @@
     <label><input type="checkbox" id="underscore"> _</label>
     <label><input type="checkbox" id="dot"> .</label>
     <br>
-    <label><input type="checkbox" id="newline" checked> 改行!?する</label>
+    <label><input type="checkbox" id="newline" checked> 改行\nする</label>
     <br>
-    <button id="generate">生成する</button>
-    <button id="download">TXTとしてダウンロード</button>
+    <button id="generate">生成する！</button>
+    <button id="download">txtとしてダウンロード</button>
     <div id="output"></div>
 </div>
 
@@ -119,21 +121,21 @@ generateButton.addEventListener('click', () => {
     }
     combinations = generateCombinations(charset, length);
     const newline = document.getElementById('newline').checked;
-    output.textContent = newline ? combinations.join('\n') : combinations.join(' '); 
+    output.textContent = newline ? combinations.join('\n') : combinations.join(' '); // 半角スペースで区切る
 });
 
 downloadButton.addEventListener('click', () => {
     if (combinations.length === 0) {
-        alert('まず「生成する」をクリックしてください');
+        alert('「生成する」をクリックしてください');
         return;
     }
     const newline = document.getElementById('newline').checked;
-    const text = newline ? combinations.join('\n') : combinations.join(' '); 
+    const text = newline ? combinations.join('\n') : combinations.join(' '); // 半角スペースで区切る
     const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'combinations.txt';
+    a.download = 'moji.txt';
     a.click();
     URL.revokeObjectURL(url);
 });

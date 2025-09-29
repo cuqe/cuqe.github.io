@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>招待生成</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      width: 350px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      margin-top: 15px;
+      font-size: 14px;
+      text-align: left;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>招待生成</h2>
+    <input type="text" id="inviteInput" placeholder="テキストを入力">
+    <button id="generateBtn">生成開始！</button>
+    <div class="result" id="resultArea"></div>
+  </div>
+
+  <script>
+    const generateBtn = document.getElementById("generateBtn");
+    const inviteInput = document.getElementById("inviteInput");
+    const resultArea = document.getElementById("resultArea");
+
+    async function generateInviteCode(userInput) {
+      resultArea.textContent = "生成中…";
+
+      try {
+        const response = await fetch(`https://dummy-invite-api.example.com/generate?text=${encodeURIComponent(userInput)}`);
+        const data = await response.json();
+
+        resultArea.innerHTML = `<strong>生成コード:</strong> ${data.code || "取得できませんでした"}`;
+      } catch (error) {
+        resultArea.textContent = `エラーが発生しました: ${error.message || error}`;
+      }
+    }
+
+    generateBtn.addEventListener("click", () => {
+      const inputValue = inviteInput.value.trim();
+      if(!inputValue) {
+        resultArea.textContent = "テキストを入力してください";
+        return;
+      }
+      generateInviteCode(inputValue);
+    });
+  </script>
+</body>
+</html>

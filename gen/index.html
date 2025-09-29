@@ -3,28 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>文字列組み合わせジェネレーター</title>
+<title>パターン生成</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
+
 body {
-    font-family: monospace;
+    font-family: 'DotGothic16', monospace;
     background-color: #0f0f0f;
     color: #eee;
     display: flex;
     justify-content: center;
     padding: 20px;
 }
+
 .container {
     background-color: #1a1a1a;
     padding: 30px;
     border-radius: 12px;
     width: 100%;
     max-width: 500px;
+    text-align: center;
 }
-h2 { text-align: center; }
+
+h2 { margin-bottom: 20px; }
+
 input[type=number] {
     width: 50px;
     margin-left: 10px;
+    padding: 5px;
+    border-radius: 6px;
+    border: none;
+    background-color: #333;
+    color: #eee;
 }
+
 .checkbox-group {
     display: flex;
     flex-wrap: wrap;
@@ -33,39 +45,78 @@ input[type=number] {
 .checkbox-group label {
     margin: 4px;
 }
+
 button {
+    position: relative;
+    overflow: hidden;
     background-color: #5865F2;
     color: #fff;
     border: none;
-    padding: 8px 16px;
+    padding: 10px 16px;
     margin: 6px 0;
     cursor: pointer;
     border-radius: 6px;
+    font-size: 16px;
 }
+
+button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255,255,255,0.4);
+    transform: translate(-50%,-50%) scale(0);
+    transition: transform 0.5s ease, width 0.5s ease, height 0.5s ease;
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+button:active::after {
+    width: 200%;
+    height: 200%;
+    transform: translate(-50%,-50%) scale(1);
+}
+
 #output {
-    margin-top: 10px;
-    max-height: 200px;
+    margin-top: 20px;
+    max-height: 300px;
     overflow-y: auto;
     background-color: #111;
     padding: 10px;
-    border-radius: 6px;
+    border-radius: 8px;
     word-break: break-all;
 }
+
+.handle {
+    display: inline-block;
+    margin-bottom: 2px;
+    cursor: pointer;
+    color: #0af;
+}
+
+.handle:hover { text-decoration: underline; }
+
 </style>
 </head>
 <body>
 <div class="container">
-<h2>文字列組み合わせジェネレーター</h2>
+<h2>パターン生成</h2>
+
 <label>文字数: <input type="number" id="length" value="2" min="1"></label>
+
 <div class="checkbox-group">
-<label><input type="checkbox" value="a-z" checked> a~z</label>
-<label><input type="checkbox" value="0-9" checked> 0~9</label>
-<label><input type="checkbox" value="-" > -</label>
-<label><input type="checkbox" value="_" > _</label>
-<label><input type="checkbox" value="." > .</label>
+<label><input type="checkbox" value="a-z" checked> a-z</label>
+<label><input type="checkbox" value="A-Z" checked> A-Z</label>
+<label><input type="checkbox" value="0-9" checked> 0-9</label>
+<label><input type="checkbox" value="-" > "-"</label>
+<label><input type="checkbox" value="_" > "_"</label>
+<label><input type="checkbox" value="." > "."</label>
+<label style="margin-left:10px;"><input type="checkbox" id="newline" checked> 改行!?</label>
 </div>
 
-<button id="generateBtn">生成</button>
+<button id="generateBtn">生成する！</button>
 <button id="downloadBtn">TXTとしてダウンロード</button>
 
 <div id="output"></div>
@@ -81,8 +132,9 @@ function buildCharset() {
     checkboxes.forEach(cb => {
         if(cb.checked) {
             if(cb.value === 'a-z') charset.push(...'abcdefghijklmnopqrstuvwxyz'.split(''));
+            else if(cb.value === 'A-Z') charset.push(...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''));
             else if(cb.value === '0-9') charset.push(...'0123456789'.split(''));
-            else charset.push(cb.value);
+            else if(cb.id !== 'newline') charset.push(cb.value);
         }
     });
     return charset;
@@ -108,16 +160,18 @@ document.getElementById('generateBtn').addEventListener('click', () => {
         alert('文字を1つ以上選んでね');
         return;
     }
+    const newline = document.getElementById('newline').checked;
     results = generateCombinations(charset, length);
-    output.textContent = results.join('\n');
+    output.textContent = newline ? results.join('\n') : results.join('');
 });
 
 document.getElementById('downloadBtn').addEventListener('click', () => {
     if(results.length === 0) {
-        alert('まず生成してください');
+        alert('生成してください');
         return;
     }
-    const blob = new Blob([results.join('\n')], {type: 'text/plain'});
+    const newline = document.getElementById('newline').checked;
+    const blob = new Blob([newline ? results.join('\n') : results.join('')], {type: 'text/plain'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

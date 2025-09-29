@@ -2,32 +2,83 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Discord ユーザー名チェッカー</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discord Username Checker</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #121212;
+      --fg: #e0e0e0;
+      --accent: #ff5252;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    h1 { color: var(--accent); }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+    }
+    button {
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+    }
+  </style>
 </head>
 <body>
   <h1>Discord Username Checker</h1>
-
-  <input type="text" id="token" placeholder="Tokenを入力">
-  <input type="text" id="username" placeholder="確認するUsername">
-  <button id="checkBtn">確認</button>
-
-  <p id="result"></p>
+  <input type="text" id="token" placeholder="Enter your Discord token" size="50">
+  <input type="text" id="username" placeholder="チェックしたいUsername" size="50">
+  <button onclick="checkUsername()">Check</button>
+  <div id="result"></div>
 
   <script>
-    document.getElementById("checkBtn").addEventListener("click", async () => {
-      const token = document.getElementById("token").value;
-      const username = document.getElementById("username").value;
+    async function checkUsername() {
+      const token = document.getElementById("token").value.trim();
+      const username = document.getElementById("username").value.trim();
 
-      const res = await fetch("https://username.nayuverify.workers.dev/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, username })
-      });
+      if (!token || !username) {
+        document.getElementById("result").textContent = "⚠️ TokenとUsernameを入力してください";
+        return;
+      }
 
-      const data = await res.json();
-      document.getElementById("result").textContent = 
-        data.available ? "使用可能！" : "すでに使われてるよ";
-    });
+      try {
+        const res = await fetch("https://username.nayuverify.workers.dev/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, username })
+        });
+
+        const data = await res.json();
+
+        if (data.available === true) {
+          document.getElementById("result").textContent = `✅ ${data.checkedUsername} は使用可能です`;
+        } else if (data.available === false) {
+          document.getElementById("result").textContent = `❌ ${data.checkedUsername} は既に使われています`;
+        } else {
+          document.getElementById("result").textContent = `⚠️ ${data.error}`;
+        }
+      } catch (e) {
+        document.getElementById("result").textContent = "⚠️ リクエスト失敗...";
+      }
+    }
   </script>
 </body>
 </html>

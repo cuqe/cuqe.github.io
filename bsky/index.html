@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bluesky 3L username checker</title>
+<title>Bluesky 3文字ユーザーチェッカー</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
 
@@ -72,6 +72,12 @@ button:active::after {
     margin-top: 10px;
 }
 
+#current {
+    font-size: 16px;
+    color: #ffffff;
+    margin-top: 5px;
+}
+
 #output {
     margin-top: 20px;
     text-align: left;
@@ -93,14 +99,14 @@ button:active::after {
     text-decoration: underline;
 }
 .success { color: #00ff00; }
-.failed { color: red; }
 </style>
 </head>
 <body>
 <div class="container">
-<h2>Bluesky</h2>
-<button id="startBtn">開始</button>
+<h2>Bluesky 3文字ユーザーチェッカー</h2>
+<button id="startBtn">チェック開始！</button>
 <div id="counter">現在のチェック数: 0 / 17576</div>
+<div id="current">現在チェック中: -</div>
 <div id="output"></div>
 </div>
 
@@ -136,18 +142,21 @@ const handleIterator = (function*() {
 
 const output = document.getElementById('output');
 const counterEl = document.getElementById('counter');
+const currentEl = document.getElementById('current');
 const startBtn = document.getElementById('startBtn');
 
 let checkedCount = 0;
 const totalHandles = 26*26*26 - reservedHandles.size;
-const batchSize = 500; // 一度に同時チェックする数
+const batchSize = 500; 
 const failedHandles = [];
 
 async function checkHandle(handle) {
+    currentEl.textContent = `現在チェック中: ${handle}`;
     const url = `https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${handle}.bsky.social`;
     try {
         const res = await fetch(url);
-        if(res.status === 200){
+        const data = await res.json();
+        if(!data.handle){ // 存在しない＝作成可能
             const span = document.createElement('span');
             span.textContent = handle;
             span.className = 'handle success';
@@ -158,7 +167,7 @@ async function checkHandle(handle) {
             output.appendChild(span);
             output.appendChild(document.createElement('br'));
         } else {
-            failedHandles.push(handle);
+            failedHandles.push(handle); // 使用済みは内部ログのみ
         }
     } catch (err) {
         failedHandles.push(handle);
@@ -176,12 +185,13 @@ async function runBatch() {
         console.log("✅ All handles checked.");
         console.log("未取得ハンドル:", failedHandles);
         alert("チェック完了！未取得ハンドルはコンソールに表示されます。");
+        currentEl.textContent = "現在チェック中: -";
         return;
     }
     await Promise.all(batch.map(h=>checkHandle(h)));
     checkedCount += batch.length;
     counterEl.textContent = `現在のチェック数: ${checkedCount} / ${totalHandles}`;
-    requestAnimationFrame(runBatch); // 次のバッチをすぐ実行
+    requestAnimationFrame(runBatch);
 }
 
 startBtn.addEventListener('click', () => {

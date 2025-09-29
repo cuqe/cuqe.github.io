@@ -1,93 +1,166 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>招待生成</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f7f7f7;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .container {
-      background-color: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      width: 350px;
-      text-align: center;
-    }
-    h2 {
-      margin-bottom: 20px;
-      color: #333;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .result {
-      margin-top: 15px;
-      font-size: 14px;
-      text-align: left;
-      word-break: break-word;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>招待リンク生成</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
+
+body {
+    font-family: 'DotGothic16', monospace;
+    background-color: #0f0f0f;
+    color: #5865F2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background-color: #1a1a1a;
+    padding: 30px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+}
+
+h2 {
+    margin-bottom: 20px;
+}
+
+input, button {
+    width: 100%;
+    padding: 8px;
+    margin: 6px 0;
+    border-radius: 6px;
+    border: none;
+    font-size: 16px;
+}
+
+button {
+    background-color: #3a3a3a;
+    color: #f0f0f0;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+#output {
+    margin-top: 20px;
+    text-align: left;
+    word-break: break-all;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #111;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+#counter {
+    margin-top: 10px;
+    font-size: 24px;
+    color: #00ff00;
+}
+
+#loading {
+    margin-top: 10px;
+    display: none;
+}
+.copy-btn {
+    cursor: pointer;
+    color: #0af;
+}
+.copy-btn:hover {
+    text-decoration: underline;
+}
+</style>
 </head>
 <body>
-  <div class="container">
-    <h2>招待生成</h2>
-    <input type="text" id="inviteInput" placeholder="テキストを入力">
-    <button id="generateBtn">生成開始！</button>
-    <div class="result" id="resultArea"></div>
-  </div>
+<div class="container">
+<h2>Discord Invite Generator</h2>
 
-  <script>
-    const generateBtn = document.getElementById("generateBtn");
-    const inviteInput = document.getElementById("inviteInput");
-    const resultArea = document.getElementById("resultArea");
+<input type="text" id="token" placeholder="あなたのtoken (捨てアカウントの利用を推奨)">
+<input type="text" id="channelId" placeholder="チャンネルID">
+<input type="number" id="count" placeholder="生成する招待リンクの数">
 
-    async function generateInviteCode(userInput) {
-      resultArea.textContent = "生成中…";
+<button id="startBtn">生成開始！</button>
 
-      try {
-        const response = await fetch(`https://dummy-invite-api.example.com/generate?text=${encodeURIComponent(userInput)}`);
-        const data = await response.json();
+<div id="counter">現在の生成数: 0</div>
+<img id="loading" src="https://u.cubeupload.com/111/loadinggif3262986532.gif&f=1&nofb=1&ipt=64eb10cdf436d14c018f461bb6ee78e8be1418b3c3b9064d69f987aa14345304" width="30">
 
-        resultArea.innerHTML = `<strong>生成コード:</strong> ${data.code || "取得できませんでした"}`;
-      } catch (error) {
-        resultArea.textContent = `エラーが発生しました: ${error.message || error}`;
-      }
+<div id="output"></div>
+</div>
+
+<script>
+const output = document.getElementById('output');
+const counterEl = document.getElementById('counter');
+const loading = document.getElementById('loading');
+let createdCount = 0;
+
+document.getElementById('startBtn').addEventListener('click', async () => {
+    const token = document.getElementById('token').value.trim();
+    const channelId = document.getElementById('channelId').value.trim();
+    const count = parseInt(document.getElementById('count').value);
+
+    if (!token || !channelId || !count) {
+        output.textContent = "全ての項目を入力してください";
+        return;
     }
 
-    generateBtn.addEventListener("click", () => {
-      const inputValue = inviteInput.value.trim();
-      if(!inputValue) {
-        resultArea.textContent = "テキストを入力してください";
-        return;
-      }
-      generateInviteCode(inputValue);
-    });
-  </script>
+    output.textContent = "";
+    createdCount = 0;
+    counterEl.textContent = `作成数: ${createdCount}`;
+    loading.style.display = 'inline';
+
+    for (let i = 0; i < count; i++) {
+        try {
+            const res = await fetch(`https://discord.com/api/v10/channels/${channelId}/invites`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': token,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ max_age: 0, max_uses: 0, temporary: false, unique: true })
+            });
+
+            if (res.status === 429) {
+                output.textContent += "\n429とかいうゴミが出たのでスクリプトを停止します。";
+                break;
+            }
+
+            const data = await res.json();
+            if (data.code) {
+                const code = data.code;
+                const span = document.createElement('span');
+                span.textContent = code;
+                span.className = 'copy-btn';
+                span.title = 'クリックでコピーできるよ';
+                span.addEventListener('click', () => {
+                    navigator.clipboard.writeText(code);
+                    alert(`コピーしました: ${code}`);
+                });
+                output.appendChild(span);
+                output.appendChild(document.createElement('br'));
+
+                createdCount++;
+                counterEl.textContent = `作成数: ${createdCount}`;
+            } else {
+                output.textContent += `エラー: ${JSON.stringify(data)}\n`;
+            }
+        } catch (err) {
+            output.textContent += `例外なエラー: ${err}\n`;
+        }
+
+        await new Promise(r => setTimeout(r, 4000));
+    }
+
+    loading.style.display = 'none';
+});
+</script>
 </body>
 </html>

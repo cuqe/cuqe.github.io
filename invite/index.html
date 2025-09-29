@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>招待リンク生成</title>
+<title>画像分割ツール</title>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
-
 body {
     font-family: 'DotGothic16', monospace;
     background-color: #0f0f0f;
@@ -17,22 +16,15 @@ body {
     min-height: 100vh;
     margin: 0;
 }
-
 .container {
     background-color: #1a1a1a;
     padding: 30px;
     border-radius: 12px;
     width: 100%;
-    max-width: 500px;
+    max-width: 600px;
     text-align: center;
-    overflow: hidden;
 }
-
-h2 {
-    margin-bottom: 20px;
-}
-
-input {
+input, button {
     width: 100%;
     padding: 8px;
     margin: 6px 0;
@@ -40,158 +32,101 @@ input {
     border: none;
     font-size: 16px;
 }
-
 button {
     position: relative;
-    overflow: hidden;
     background-color: #5865F2;
     color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 10px;
-    font-size: 16px;
-    cursor: pointer;
-    margin: 6px 0;
+    overflow: hidden;
+    transition: color 0.3s;
 }
-
-button::after {
-    content: '';
+button::before {
+    content: "";
     position: absolute;
-    top: 50%;
     left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(255, 255, 255, 0.4);
+    top: 50%;
+    width: 300%;
+    height: 300%;
+    background: rgba(255,255,255,0.3);
     transform: translate(-50%, -50%) scale(0);
-    transition: transform 0.5s ease, width 0.5s ease, height 0.5s ease;
-    border-radius: 4px;
-    pointer-events: none;
+    transition: transform 0.5s;
+    border-radius: 50%;
 }
-
-button:active::after {
-    width: 200%;
-    height: 200%;
+button:active::before {
     transform: translate(-50%, -50%) scale(1);
 }
-
 #output {
     margin-top: 20px;
-    text-align: left;
-    word-break: break-all;
-    max-height: 300px;
-    overflow-y: auto;
-    background-color: #111;
-    padding: 10px;
-    border-radius: 8px;
+    display: grid;
+    gap: 4px;
 }
-
-#counter {
-    margin-top: 10px;
-    font-size: 18px; /* 少し小さく */
-    color: #00aaff; /* 青に変更 */
-}
-
-.copy-btn {
-    cursor: pointer;
-    color: #0af;
-    display: inline-block;
-    margin-bottom: 2px;
-}
-.copy-btn:hover {
-    text-decoration: underline;
-}
-
-.danger {
-    color: red;
-    font-weight: bold;
+#output img {
+    width: 100%;
+    display: block;
 }
 </style>
 </head>
 <body>
 <div class="container">
-<h2>Discord Invite Generator</h2>
-
-<input type="text" id="token" placeholder="あなたのtoken (捨てアカウントの利用を推奨)">
-<input type="text" id="channelId" placeholder="チャンネルID">
-<input type="number" id="count" placeholder="生成する招待リンクの数">
-<input type="number" id="interval" placeholder="生成間隔（秒）" value="4" min="1">
-
-<button id="startBtn">生成開始！</button>
-
-<div id="counter">現在の生成数: 0</div>
+<h2>画像分割ツール</h2>
+<input type="file" id="fileInput" accept="image/*">
+<input type="number" id="splitInput" min="1" placeholder="分割数の平方根を入力 (例: 2→4分割)">
+<button id="splitBtn">分割開始</button>
+<button id="downloadAllBtn" style="display:none;">一括ダウンロード</button>
 <div id="output"></div>
 </div>
-
 <script>
+const fileInput = document.getElementById('fileInput');
+const splitBtn = document.getElementById('splitBtn');
+const splitInput = document.getElementById('splitInput');
 const output = document.getElementById('output');
-const counterEl = document.getElementById('counter');
-const startBtn = document.getElementById('startBtn');
-let createdCount = 0;
+const downloadAllBtn = document.getElementById('downloadAllBtn');
+let imagesData = [];
 
-// 同じ文字3つ以上、または数字4つ以上を判定
-function checkDanger(code) {
-    if (/(.)\1\1/.test(code)) return true;
-    if (/\d{4,}/.test(code)) return true;
-    return false;
-}
+splitBtn.addEventListener('click', () => {
+    const file = fileInput.files[0];
+    const splitVal = parseInt(splitInput.value);
+    if (!file) return alert('画像を選択してください');
+    if (!splitVal || splitVal < 1) return alert('正確な分割数を入力してください');
+    
+    const img = new Image();
+    img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const rows = splitVal;
+        const cols = splitVal;
+        const w = img.width / cols;
+        const h = img.height / rows;
 
-startBtn.addEventListener('click', async () => {
-    const token = document.getElementById('token').value.trim();
-    const channelId = document.getElementById('channelId').value.trim();
-    const count = parseInt(document.getElementById('count').value);
-    const intervalSec = parseFloat(document.getElementById('interval').value);
+        imagesData = [];
+        output.innerHTML = '';
+        output.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
-    if (!token || !channelId || !count || !intervalSec) {
-        output.textContent = "全ての項目を入力してください";
-        return;
-    }
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                canvas.width = w;
+                canvas.height = h;
+                ctx.clearRect(0,0,w,h);
+                ctx.drawImage(img, x*w, y*h, w, h, 0,0,w,h);
+                const dataUrl = canvas.toDataURL();
+                imagesData.push({dataUrl, name: `split_${y}_${x}.png`});
 
-    output.textContent = "";
-    createdCount = 0;
-    counterEl.textContent = `現在の生成数: ${createdCount}`;
-
-    for (let i = 0; i < count; i++) {
-        try {
-            const res = await fetch(`https://discord.com/api/v10/channels/${channelId}/invites`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': token,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ max_age: 0, max_uses: 0, temporary: false, unique: true })
-            });
-
-            if (res.status === 429) {
-                output.textContent += "\n429が出たのでスクリプトを停止します。";
-                break;
+                const imgEl = document.createElement('img');
+                imgEl.src = dataUrl;
+                output.appendChild(imgEl);
             }
-
-            const data = await res.json();
-            if (data.code) {
-                const code = data.code;
-                const span = document.createElement('span');
-                span.textContent = code;
-                span.className = 'copy-btn';
-                if (checkDanger(code)) span.classList.add('danger');
-                span.title = 'クリックでコピーできるよ';
-                span.addEventListener('click', () => {
-                    navigator.clipboard.writeText(code);
-                    alert(`コピーしました: ${code}`);
-                });
-                output.appendChild(span);
-                output.appendChild(document.createElement('br'));
-
-                createdCount++;
-                counterEl.textContent = `現在の生成数: ${createdCount}`;
-            } else {
-                output.textContent += `エラー: ${JSON.stringify(data)}\n`;
-            }
-        } catch (err) {
-            output.textContent += `例外なエラー: ${err}\n`;
         }
+        downloadAllBtn.style.display = 'block';
+    };
+    img.src = URL.createObjectURL(file);
+});
 
-        await new Promise(r => setTimeout(r, intervalSec * 1000));
-    }
+downloadAllBtn.addEventListener('click', () => {
+    imagesData.forEach(img => {
+        const a = document.createElement('a');
+        a.href = img.dataUrl;
+        a.download = img.name;
+        a.click();
+    });
 });
 </script>
 </body>

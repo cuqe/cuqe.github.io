@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Discord ユーザー名チェッカー</title>
+</head>
+<body>
+  <h1>Discord Username Checker</h1>
+
+  <input type="text" id="token" placeholder="Tokenを入力">
+  <input type="text" id="username" placeholder="確認するUsername">
+  <button id="checkBtn">確認</button>
+
+  <p id="result"></p>
+
+  <script>
+    document.getElementById("checkBtn").addEventListener("click", async () => {
+      const token = document.getElementById("token").value;
+      const username = document.getElementById("username").value;
+
+      const res = await fetch("https://username.nayuverify.workers.dev/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, username })
+      });
+
+      const data = await res.json();
+      document.getElementById("result").textContent = 
+        data.available ? "使用可能！" : "すでに使われてるよ";
+    });
+  </script>
+</body>
+</html>

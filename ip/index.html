@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your IP & Location</title>
+  <title>あなたのIPアドレス</title>
   <style>
     :root {
       color-scheme: dark;
       --bg: #121212;
       --fg: #e0e0e0;
-      --accent: #4fc3f7;
+      --accent: #ff384c;
     }
     body {
       margin: 0;
@@ -65,7 +65,7 @@
         `;
       })
       .catch(() => {
-        document.getElementById("info").textContent = "情報を取得できませんでした";
+        document.getElementById("info").textContent = "情報を取得できませんでした...";
       });
   </script>
 </body>

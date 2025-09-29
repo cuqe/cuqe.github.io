@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>フォーラム閲覧数爆</title>
+<title>閲覧数爆</title>
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
 body {
@@ -59,11 +59,12 @@ button {
 </head>
 <body>
 <div class="container">
-    <h2>フォーラム閲覧数爆 ver2.0</h2>
+    <h2>フォーラム閲覧数爆</h2>
     <h3>～5000万人の思い出を再び～</h3>
 
     <input type="number" id="topicId" placeholder="トピックID">
     <input type="number" id="count" placeholder="アクセス回数">
+    <input type="number" id="parallel" placeholder="並列数 (例: 1000)" value="1000">
 
     <br>
     <button id="startBtn">アクセス開始！</button>
@@ -71,7 +72,7 @@ button {
     <div id="counter">現在のアクセス数: 0</div>
 
     <div class="footer">
-        注意：このサイトは教育目的で共有されています。Contact: <a href="https://discord.gg/nAEK3F5sGw" target="_blank">discord.gg/nAEK3F5sGw</a>
+        注意：このサイトは教育目的で共有されています。使用は自己責任でお願いします。Contact: <a href="https://discord.gg/nAEK3F5sGw" target="_blank">discord.gg/nAEK3F5sGw</a>
     </div>
 </div>
 
@@ -82,18 +83,18 @@ const counterEl = document.getElementById('counter');
 startBtn.addEventListener('click', async () => {
     const topicId = document.getElementById('topicId').value.trim();
     let count = parseInt(document.getElementById('count').value);
+    const parallel = parseInt(document.getElementById('parallel').value) || 1000;
 
-    if (!topicId || !count || count <= 0) {
-        alert('トピックIDとアクセス回数を正しく入力してください');
+    if (!topicId || !count || count <= 0 || parallel <= 0) {
+        alert('トピックID、アクセス回数、並列数を正しく入力してください');
         return;
     }
 
-    const batchSize = 1000; // 1度に1000アクセス
     let current = 0;
     counterEl.textContent = `現在のアクセス数: ${current}`;
 
     while (count > 0) {
-        const batch = Math.min(count, batchSize);
+        const batch = Math.min(count, parallel);
         const promises = [];
         for (let i = 0; i < batch; i++) {
             promises.push(fetch(`https://scratch.mit.edu/discuss/topic/${topicId}`));

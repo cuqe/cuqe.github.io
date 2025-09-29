@@ -32,7 +32,7 @@ h2 {
     margin-bottom: 20px;
 }
 
-input, button {
+input {
     width: 100%;
     padding: 8px;
     margin: 6px 0;
@@ -42,20 +42,42 @@ input, button {
 }
 
 button {
-    background-color: #3a3a3a;
-    color: #f0f0f0;
+    position: relative;
+    overflow: hidden;
+    background-color: #5865F2;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 16px;
     cursor: pointer;
-    transition: transform 0.5s ease, opacity 0.5s ease;
+    margin: 6px 0;
 }
 
-button:hover {
-    background-color: #555;
+button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.4);
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.5s ease, width 0.5s ease, height 0.5s ease;
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+button:active::after {
+    width: 200%;
+    height: 200%;
+    transform: translate(-50%, -50%) scale(1);
 }
 
 #output {
     margin-top: 20px;
     text-align: left;
-    word-break: break-all; /* 自動改行 */
+    word-break: break-all;
     max-height: 300px;
     overflow-y: auto;
     background-color: #111;
@@ -106,11 +128,9 @@ const counterEl = document.getElementById('counter');
 const startBtn = document.getElementById('startBtn');
 let createdCount = 0;
 
-// 文字列チェック関数
+// 同じ文字3つ以上、または数字4つ以上を判定
 function checkDanger(code) {
-    // 同じ文字が3つ以上
     if (/(.)\1\1/.test(code)) return true;
-    // 数字が4つ以上
     if (/\d{4,}/.test(code)) return true;
     return false;
 }
@@ -126,17 +146,9 @@ startBtn.addEventListener('click', async () => {
         return;
     }
 
-    // ボタンアニメーション: 中心から外へ
-    startBtn.style.transform = "scale(3)";
-    startBtn.style.opacity = "0";
-    setTimeout(() => {
-        startBtn.style.transform = "scale(1)";
-        startBtn.style.opacity = "1";
-    }, 500);
-
     output.textContent = "";
     createdCount = 0;
-    counterEl.textContent = `作成数: ${createdCount}`;
+    counterEl.textContent = `現在の生成数: ${createdCount}`;
 
     for (let i = 0; i < count; i++) {
         try {
@@ -150,7 +162,7 @@ startBtn.addEventListener('click', async () => {
             });
 
             if (res.status === 429) {
-                output.textContent += "\n429とかいうゴミが出たのでスクリプトを停止します。";
+                output.textContent += "\n429が出たのでスクリプトを停止します。";
                 break;
             }
 
@@ -170,7 +182,7 @@ startBtn.addEventListener('click', async () => {
                 output.appendChild(document.createElement('br'));
 
                 createdCount++;
-                counterEl.textContent = `作成数: ${createdCount}`;
+                counterEl.textContent = `現在の生成数: ${createdCount}`;
             } else {
                 output.textContent += `エラー: ${JSON.stringify(data)}\n`;
             }

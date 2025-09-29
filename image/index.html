@@ -24,7 +24,7 @@ body {
     max-width: 600px;
     text-align: center;
 }
-input, button, select {
+input, button {
     width: 100%;
     padding: 8px;
     margin: 6px 0;
@@ -33,12 +33,26 @@ input, button, select {
     font-size: 16px;
 }
 button {
-    background-color: #3a3a3a;
-    color: #f0f0f0;
-    cursor: pointer;
+    position: relative;
+    background-color: #5865F2;
+    color: #fff;
+    overflow: hidden;
+    transition: color 0.3s;
 }
-button:hover {
-    background-color: #555;
+button::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 300%;
+    height: 300%;
+    background: rgba(255,255,255,0.3);
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.5s;
+    border-radius: 50%;
+}
+button:active::before {
+    transform: translate(-50%, -50%) scale(1);
 }
 #output {
     margin-top: 20px;
@@ -53,36 +67,37 @@ button:hover {
 </head>
 <body>
 <div class="container">
-<h2>画像分割ツール</h2>
+<h2>画像分割ツール ver2.0</h2>
 <input type="file" id="fileInput" accept="image/*">
-<select id="splitCount">
-    <option value="4">4分割</option>
-    <option value="9">9分割</option>
-    <option value="16">16分割</option>
-</select>
+<input type="number" id="splitInput" min="1" placeholder="分割する数の平方根を入力 (例: 2→4分割)">
 <button id="splitBtn">分割開始</button>
+<button id="downloadAllBtn" style="display:none;">一括ダウンロード</button>
 <div id="output"></div>
 </div>
 <script>
 const fileInput = document.getElementById('fileInput');
 const splitBtn = document.getElementById('splitBtn');
-const splitCount = document.getElementById('splitCount');
+const splitInput = document.getElementById('splitInput');
 const output = document.getElementById('output');
+const downloadAllBtn = document.getElementById('downloadAllBtn');
+let imagesData = [];
 
 splitBtn.addEventListener('click', () => {
     const file = fileInput.files[0];
+    const splitVal = parseInt(splitInput.value);
     if (!file) return alert('画像を選択してください');
-    const count = parseInt(splitCount.value);
-
+    if (!splitVal || splitVal < 1) return alert('正確な分割する数を入力してください');
+    
     const img = new Image();
     img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        const rows = Math.sqrt(count);
-        const cols = rows;
+        const rows = splitVal;
+        const cols = splitVal;
         const w = img.width / cols;
         const h = img.height / rows;
 
+        imagesData = [];
         output.innerHTML = '';
         output.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
@@ -93,13 +108,25 @@ splitBtn.addEventListener('click', () => {
                 ctx.clearRect(0,0,w,h);
                 ctx.drawImage(img, x*w, y*h, w, h, 0,0,w,h);
                 const dataUrl = canvas.toDataURL();
+                imagesData.push({dataUrl, name: `split_${y}_${x}.png`});
+
                 const imgEl = document.createElement('img');
                 imgEl.src = dataUrl;
                 output.appendChild(imgEl);
             }
         }
+        downloadAllBtn.style.display = 'block';
     };
     img.src = URL.createObjectURL(file);
+});
+
+downloadAllBtn.addEventListener('click', () => {
+    imagesData.forEach(img => {
+        const a = document.createElement('a');
+        a.href = img.dataUrl;
+        a.download = img.name;
+        a.click();
+    });
 });
 </script>
 </body>

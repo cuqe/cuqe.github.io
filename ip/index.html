@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your IP</title>
+  <title>Your IP & Location</title>
   <style>
     :root {
       color-scheme: dark;
@@ -20,7 +20,8 @@
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      height: 100vh;
+      padding: 2rem;
+      min-height: 100vh;
       text-align: center;
     }
     h1 {
@@ -28,24 +29,43 @@
       margin-bottom: 1rem;
       color: var(--accent);
     }
-    #ip {
-      font-size: 1.5rem;
-      font-weight: bold;
+    #info {
+      font-size: 1rem;
+      line-height: 1.8;
+      background: #1e1e1e;
+      padding: 1.5rem;
+      border-radius: 12px;
+      max-width: 600px;
+      word-break: break-word;
+      text-align: left;
+    }
+    strong {
+      color: var(--accent);
     }
   </style>
 </head>
 <body>
-  <h1>Your IP Address</h1>
-  <p id="ip">読み込み中...</p>
+  <h1>Your IP & Location</h1>
+  <div id="info">読み込み中...</div>
 
   <script>
-    fetch("https://api.ipify.org?format=json")
-      .then(response => response.json())
+    fetch("https://ipapi.co/json/")
+      .then(res => res.json())
       .then(data => {
-        document.getElementById("ip").textContent = data.ip;
+        document.getElementById("info").innerHTML = `
+          <p><strong>IP:</strong> ${data.ip}</p>
+          <p><strong>国:</strong> ${data.country_name} (${data.country})</p>
+          <p><strong>地域:</strong> ${data.region}</p>
+          <p><strong>都市:</strong> ${data.city}</p>
+          <p><strong>郵便番号:</strong> ${data.postal}</p>
+          <p><strong>タイムゾーン:</strong> ${data.timezone}</p>
+          <p><strong>緯度・経度:</strong> ${data.latitude}, ${data.longitude}</p>
+          <p><strong>ASN:</strong> ${data.asn}</p>
+          <p><strong>ISP / 組織:</strong> ${data.org}</p>
+        `;
       })
       .catch(() => {
-        document.getElementById("ip").textContent = "取得できませんでした";
+        document.getElementById("info").textContent = "情報を取得できませんでした";
       });
   </script>
 </body>

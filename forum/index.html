@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>閲覧数爆</title>
+<title>フォーラム閲覧数爆</title>
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
 body {
@@ -25,18 +25,29 @@ body {
     max-width: 600px;
     text-align: center;
 }
-h2 { margin-bottom: 10px; color: #5865F2; }
+h2 { margin-bottom: 10px; color: #f28830; } /* Scratchオレンジ */
 h3 { margin-bottom: 20px; font-weight: normal; color: #aaa; }
 
-input[type="number"], button {
+input[type="number"] {
     padding: 10px;
     margin: 10px;
     border-radius: 5px;
     border: none;
-    background-color: #5865F2;
+    background-color: #fff;
+    color: #000;
+    cursor: text;
+}
+
+button {
+    padding: 10px 16px;
+    margin: 10px;
+    border-radius: 5px;
+    border: none;
+    background-color: #f28830; /* オレンジ */
     color: white;
     cursor: pointer;
 }
+
 #counter { margin-top: 20px; font-size: 20px; color: #00ff00; }
 
 .footer {
@@ -48,7 +59,7 @@ input[type="number"], button {
 </head>
 <body>
 <div class="container">
-    <h2>フォーラム閲覧数爆</h2>
+    <h2>フォーラム閲覧数爆 ver2.0</h2>
     <h3>～5000万人の思い出を再び～</h3>
 
     <input type="number" id="topicId" placeholder="トピックID">
@@ -70,24 +81,27 @@ const counterEl = document.getElementById('counter');
 
 startBtn.addEventListener('click', async () => {
     const topicId = document.getElementById('topicId').value.trim();
-    const count = parseInt(document.getElementById('count').value);
+    let count = parseInt(document.getElementById('count').value);
 
     if (!topicId || !count || count <= 0) {
         alert('トピックIDとアクセス回数を正しく入力してください');
         return;
     }
 
+    const batchSize = 1000; // 1度に1000アクセス
     let current = 0;
     counterEl.textContent = `現在のアクセス数: ${current}`;
 
-    for (let i = 0; i < count; i++) {
-        try {
-            await fetch(`https://scratch.mit.edu/discuss/topic/${topicId}`);
-            current++;
-            counterEl.textContent = `現在のアクセス数: ${current}`;
-        } catch (err) {
-            console.error(`アクセス失敗: ${err}`);
+    while (count > 0) {
+        const batch = Math.min(count, batchSize);
+        const promises = [];
+        for (let i = 0; i < batch; i++) {
+            promises.push(fetch(`https://scratch.mit.edu/discuss/topic/${topicId}`));
         }
+        await Promise.all(promises);
+        current += batch;
+        count -= batch;
+        counterEl.textContent = `現在のアクセス数: ${current}`;
     }
 
     alert(`完了！ 合計 ${current} 回アクセスしました。`);

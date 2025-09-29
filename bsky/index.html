@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bluesky 3L checker</title>
+<title>Bluesky 3L username checker</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
 
@@ -24,7 +24,7 @@ body {
     padding: 30px;
     border-radius: 12px;
     width: 100%;
-    max-width: 600px;
+    max-width: 700px;
     text-align: center;
     overflow: hidden;
 }
@@ -98,8 +98,8 @@ button:active::after {
 </head>
 <body>
 <div class="container">
-<h2>Bluesky 3L checker</h2>
-<button id="startBtn">チェック開始！</button>
+<h2>Bluesky</h2>
+<button id="startBtn">開始</button>
 <div id="counter">現在のチェック数: 0 / 17576</div>
 <div id="output"></div>
 </div>
@@ -140,32 +140,28 @@ const startBtn = document.getElementById('startBtn');
 
 let checkedCount = 0;
 const totalHandles = 26*26*26 - reservedHandles.size;
-const batchSize = 5; // 一度に同時チェックする数
+const batchSize = 500; // 一度に同時チェックする数
+const failedHandles = [];
 
 async function checkHandle(handle) {
     const url = `https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${handle}.bsky.social`;
     try {
         const res = await fetch(url);
-        const span = document.createElement('span');
-        span.textContent = handle;
-        span.className = 'handle';
-        span.addEventListener('click', () => {
-            navigator.clipboard.writeText(handle);
-            alert(`コピーしました: ${handle}`);
-        });
         if(res.status === 200){
-            span.classList.add('success');
+            const span = document.createElement('span');
+            span.textContent = handle;
+            span.className = 'handle success';
+            span.addEventListener('click', () => {
+                navigator.clipboard.writeText(handle);
+                alert(`コピーしました: ${handle}`);
+            });
+            output.appendChild(span);
+            output.appendChild(document.createElement('br'));
         } else {
-            span.classList.add('failed');
+            failedHandles.push(handle);
         }
-        output.appendChild(span);
-        output.appendChild(document.createElement('br'));
     } catch (err) {
-        const span = document.createElement('span');
-        span.textContent = handle;
-        span.className = 'handle failed';
-        output.appendChild(span);
-        output.appendChild(document.createElement('br'));
+        failedHandles.push(handle);
     }
 }
 
@@ -178,6 +174,8 @@ async function runBatch() {
     }
     if(batch.length === 0){
         console.log("✅ All handles checked.");
+        console.log("未取得ハンドル:", failedHandles);
+        alert("チェック完了！未取得ハンドルはコンソールに表示されます。");
         return;
     }
     await Promise.all(batch.map(h=>checkHandle(h)));

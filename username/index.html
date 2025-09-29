@@ -1,1 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文字列組み合わせジェネレーター</title>
+<style>
+body {
+    font-family: monospace;
+    background-color: #0f0f0f;
+    color: #eee;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+.container {
+    background-color: #1a1a1a;
+    padding: 30px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+}
+h2 { text-align: center; }
+input[type=number] {
+    width: 50px;
+    margin-left: 10px;
+}
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 10px 0;
+}
+.checkbox-group label {
+    margin: 4px;
+}
+button {
+    background-color: #5865F2;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    margin: 6px 0;
+    cursor: pointer;
+    border-radius: 6px;
+}
+#output {
+    margin-top: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #111;
+    padding: 10px;
+    border-radius: 6px;
+    word-break: break-all;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>文字列組み合わせジェネレーター</h2>
+<label>文字数: <input type="number" id="length" value="2" min="1"></label>
 
+<div class="checkbox-group">
+<label><input type="checkbox" value="a-z" checked> a~z</label>
+<label><input type="checkbox" value="0-9" checked> 0~9</label>
+<label><input type="checkbox" value="-" > -</label>
+<label><input type="checkbox" value="_" > _</label>
+<label><input type="checkbox" value="." > .</label>
+</div>
+
+<button id="generateBtn">生成</button>
+<button id="downloadBtn">TXTとしてダウンロード</button>
+
+<div id="output"></div>
+</div>
+
+<script>
+const output = document.getElementById('output');
+let results = [];
+
+function buildCharset() {
+    const checkboxes = document.querySelectorAll('.checkbox-group input[type=checkbox]');
+    let charset = [];
+    checkboxes.forEach(cb => {
+        if(cb.checked) {
+            if(cb.value === 'a-z') charset.push(...'abcdefghijklmnopqrstuvwxyz'.split(''));
+            else if(cb.value === '0-9') charset.push(...'0123456789'.split(''));
+            else charset.push(cb.value);
+        }
+    });
+    return charset;
+}
+
+function generateCombinations(charset, length) {
+    const res = [];
+    function helper(prefix) {
+        if(prefix.length === length) {
+            res.push(prefix);
+            return;
+        }
+        charset.forEach(c => helper(prefix + c));
+    }
+    helper('');
+    return res;
+}
+
+document.getElementById('generateBtn').addEventListener('click', () => {
+    const length = parseInt(document.getElementById('length').value);
+    const charset = buildCharset();
+    if(charset.length === 0) {
+        alert('文字を1つ以上選んでね');
+        return;
+    }
+    results = generateCombinations(charset, length);
+    output.textContent = results.join('\n');
+});
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+    if(results.length === 0) {
+        alert('まず生成してください');
+        return;
+    }
+    const blob = new Blob([results.join('\n')], {type: 'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `combinations_${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>

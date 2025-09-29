@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scratchフォーラム閲覧数爆</title>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+body {
+    font-family: 'DotGothic16', sans-serif;
+    background-color: #0f0f0f;
+    color: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+}
+.container {
+    background-color: #1a1a1a;
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+h2 { margin-bottom: 10px; color: #5865F2; }
+h3 { margin-bottom: 20px; font-weight: normal; color: #aaa; }
+
+input[type="number"], button {
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5px;
+    border: none;
+    background-color: #5865F2;
+    color: white;
+    cursor: pointer;
+}
+#counter { margin-top: 20px; font-size: 20px; color: #00ff00; }
+
+.footer {
+    margin-top: 15px;
+    font-size: 12px;
+    color: #888;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h2>Scratchフォーラム閲覧数爆</h2>
+    <h3>～5000万人の思い出を再び～</h3>
+
+    <input type="number" id="topicId" placeholder="トピックID">
+    <input type="number" id="count" placeholder="アクセス回数">
+
+    <br>
+    <button id="startBtn">アクセス開始！</button>
+
+    <div id="counter">現在のアクセス数: 0</div>
+
+    <div class="footer">
+        このサイトは教育目的で共有されています。Contact: <a href="https://discord.gg/nAEK3F5sGw" target="_blank">discord.gg/nAEK3F5sGw</a>
+    </div>
+</div>
+
+<script>
+const startBtn = document.getElementById('startBtn');
+const counterEl = document.getElementById('counter');
+
+startBtn.addEventListener('click', async () => {
+    const topicId = document.getElementById('topicId').value.trim();
+    const count = parseInt(document.getElementById('count').value);
+
+    if (!topicId || !count || count <= 0) {
+        alert('トピックIDとアクセス回数を正しく入力してください');
+        return;
+    }
+
+    let current = 0;
+    counterEl.textContent = `現在のアクセス数: ${current}`;
+
+    for (let i = 0; i < count; i++) {
+        try {
+            await fetch(`https://scratch.mit.edu/discuss/topic/${topicId}`);
+            current++;
+            counterEl.textContent = `現在のアクセス数: ${current}`;
+        } catch (err) {
+            console.error(`アクセス失敗: ${err}`);
+        }
+    }
+
+    alert(`完了！ 合計 ${current} 回アクセスしました。`);
+});
+</script>
+</body>
+</html>

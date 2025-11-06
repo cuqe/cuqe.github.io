@@ -11,7 +11,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
       background-color: #f0f0f0;
       color: #333;
@@ -22,19 +22,27 @@
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      width: 90%;
     }
-    select, button {
+    textarea, select, button {
       padding: 10px;
       margin: 10px;
       font-size: 16px;
       border-radius: 5px;
       border: 1px solid #ccc;
-      cursor: pointer;
+      width: calc(100% - 22px);
+      box-sizing: border-box;
+    }
+    textarea {
+      height: 100px;
+      resize: vertical;
     }
     button {
       background-color: #5865F2;
       color: white;
       border: none;
+      cursor: pointer;
     }
     button:hover {
       background-color: #4752C4;
@@ -42,13 +50,16 @@
     #status {
       margin-top: 10px;
       font-weight: bold;
+      white-space: pre-wrap;
+      text-align: left;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Discord HypeSquad Changer</h1>
-    <p>Discordでログインした状態で使用してください</p>
+    <p>トークンをカンマ区切りで入力してください（例: token1,token2,token3）</p>
+    <textarea id="tokenInput" placeholder="トークンをここに入力（カンマ区切りで複数可）"></textarea>
     <select id="houseSelect">
       <option value="1">紫 (Bravery)</option>
       <option value="2">オレンジ (Brilliance)</option>
@@ -60,72 +71,57 @@
   </div>
 
   <script>
-    async function getToken() {
-      let token;
-      try {
-        window.webpackChunkdiscord_app.push([[Symbol()], {}, o => {
-          for (let e of Object.values(o.c)) {
-            try {
-              if (!e.exports || e.exports === window) continue;
-              if (e.exports?.getToken) {
-                token = e.exports.getToken();
-              }
-              for (let o in e.exports) {
-                if (e.exports?.[o]?.getToken && "IntlMessagesProxy" !== e.exports[o][Symbol.toStringTag]) {
-                  token = e.exports[o].getToken();
-                }
-              }
-            } catch {}
-          }
-        }]);
-        window.webpackChunkdiscord_app.pop();
-      } catch (e) {
-        console.error("トークンの取得に失敗しました:", e);
-        return null;
-      }
-      return token;
-    }
-
-    async function changeHypeSquad() {
-      const status = document.getElementById('status');
-      status.textContent = '処理中...';
-      status.style.color = '#333';
-
-      const houseId = document.getElementById('houseSelect').value;
-      const token = await getToken();
-
-      if (!token) {
-        status.textContent = 'エラー: トークンが取得できませんでした';
-        status.style.color = 'red';
-        console.error(":x: トークンが取得できませんでした");
-        return;
-      }
-
+    async function changeHypeSquadForToken(token, houseId, index) {
       try {
         const response = await fetch("https://discord.com/api/v9/hypesquad/online", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": token
+            "Authorization": token.trim()
           },
           body: JSON.stringify({ house_id: Number(houseId) })
         });
 
         if (response.ok) {
-          status.textContent = '正常に完了しました！';
-          status.style.color = 'green';
-          console.log(":white_check_mark: 正常に完了しました");
+          return `トークン ${index + 1}: 正常に完了しました！`;
         } else {
           const text = await response.text();
-          status.textContent = 'エラー: ' + text;
-          status.style.color = 'red';
-          console.error(":x: エラーが出ました:", text);
+          return `トークン ${index + 1}: エラーが出ました: ${text}`;
         }
       } catch (error) {
-        status.textContent = 'fetchリクエスト中にエラーが発生しました';
-        status.style.color = 'red';
-        console.error(":x: fetchリクエスト中にエラーが発生しました:", error);
+        return `トークン ${index + 1}: fetchリクエスト中にエラーが発生しました: ${error.message}`;
       }
+    }
+
+    async function changeHypeSquad() {
+      const status = document.getElementById('status');
+      const tokenInput = document.getElementById('tokenInput').value;
+      const houseId = document.getElementById('houseSelect').value;
+
+      if (!tokenInput) {
+        status.textContent = 'エラー: トークンを入力してください';
+        status.style.color = 'red';
+        return;
+      }
+
+      const tokens = tokenInput.split(',').map(t => t.trim()).filter(t => t);
+      if (tokens.length === 0) {
+        status.textContent = 'エラー: 有効なトークンがありません';
+        status.style.color = 'red';
+        return;
+      }
+
+      status.textContent = '処理中...';
+      status.style.color = '#333';
+
+      const results = [];
+      for (let i = 0; i < tokens.length; i++) {
+        const result = await changeHypeSquadForToken(tokens[i], houseId, i);
+        results.push(result);
+      }
+
+      status.textContent = results.join('\n');
+      status.style.color = results.every(r => r.includes('正常に完了')) ? 'green' : 'red';
     }
   </script>
 </body>

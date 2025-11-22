@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Simple Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            /* ページ全体を中央揃えにするために高さを設定 */
+            min-height: 100vh; 
+            margin: 0;
+            background-color: #ffffff; /* 背景色を白に */
+        }
+        
+        .header {
+            font-size: 50px;
+            font-weight: bold;
+            color: #4285f4; /* サイト名に青色を使用 */
+            margin-bottom: 30px;
+        }
+
+        .search-container {
+            width: 90%;
+            max-width: 580px; /* 検索バーの最大幅 */
+            text-align: center;
+        }
+
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 1px solid #dadce0;
+            border-radius: 24px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            box-sizing: border-box;
+            outline: none;
+            transition: box-shadow 0.3s;
+        }
+
+        .search-input:focus {
+            /* 入力時にシャドウを強める */
+            box-shadow: 0 1px 6px rgba(32,33,36,0.28);
+            border-color: transparent;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .search-button {
+            background-color: #f8f9fa;
+            border: 1px solid #f8f9fa;
+            border-radius: 4px;
+            color: #3c4043;
+            font-size: 14px;
+            padding: 10px 15px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-button:hover {
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+            background-color: #f0f0f0;
+            border: 1px solid #dadce0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        MySearch
+    </div>
+    
+    <div class="search-container">
+        <form class="search-form" action="#" method="get">
+            <input type="text" class="search-input" placeholder="検索キーワードを入力してください" name="q">
+            <div class="buttons">
+                <button type="submit" class="search-button">検索</button>
+                <button type="button" class="search-button">おまかせ</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
